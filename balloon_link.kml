@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
+    <Document id="feat_1">
+        <NetworkLink id="feat_2">
+            <name>Refresh Link</name>
+            <Link id="link_0">
+                <href>C:\Users\adrienp\git-uav\simple-mavlink-groundstation/balloon.kml</href>
+                <refreshMode>onInterval </refreshMode>
+                <refreshInterval>1.0</refreshInterval>
+            </Link>
+        </NetworkLink>
+    </Document>
+</kml>
