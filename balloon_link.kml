@@ -4,7 +4,7 @@
         <NetworkLink id="feat_2">
             <name>Refresh Link</name>
             <Link id="link_0">
-                <href>C:\Users\adrienp\git-uav\simple-mavlink-groundstation/balloon.kml</href>
+                <href>C:\Users\adrienp\Documents\balloon project\SSMGS/balloon.kml</href>
                 <refreshMode>onInterval </refreshMode>
                 <refreshInterval>1.0</refreshInterval>
             </Link>

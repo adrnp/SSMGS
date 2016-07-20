@@ -141,7 +141,7 @@ with open(logfile_name, 'ab') as f:
         # get the heartbeat (doing this to be able to send a heartbeat)
         elif msg.get_type() == "HEARTBEAT":
             hrt = msg
-            print("heartbeat received\n")
+            print("heartbeat received: base: %d,  custom: %d, state: %d\n" % (hrt.base_mode, hrt.custom_mode, hrt.system_status))
 
             # send a heartbeat if received one
             master.mav.heartbeat_send(1, 1, 1, 1, 1)
