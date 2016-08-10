@@ -62,7 +62,7 @@ args = parser.parse_args()
 logfile_name = "all_logs.csv"
 
 # create a mavlink serial instance
-mavutil.set_dialect('common')
+mavutil.set_dialect('ncl_balloon')
 master = mavutil.mavlink_connection(args.device, baud=args.baudrate, source_system=args.SOURCE_SYSTEM)
 
 
@@ -115,7 +115,7 @@ with open(logfile_name, 'ab') as f:
         # get the attitude (nto configured yet)
         if msg.get_type() == "ATTITUDE":
             att = msg
-            print("roll: %f, pitch: %f, yaw: %f" % (att.roll, att.pitch, att.yaw))
+            print("roll: %f, pitch: %f, yaw: %f\n" % (att.roll, att.pitch, att.yaw))
 
         # get the radio status
         elif msg.get_type() == "RADIO_STATUS":
@@ -141,6 +141,70 @@ with open(logfile_name, 'ab') as f:
         # get the heartbeat (doing this to be able to send a heartbeat)
         elif msg.get_type() == "HEARTBEAT":
             hrt = msg
+
+            # all of the flags
+            flightTermFlag = False
+            flightTermBurnStart = False
+            flightTermBurnEnd = False
+            parachuteArmed = False
+            parachuteDeployed = False
+            heatOn = False
+            heatPriority = False
+
+            # parse out the base mode elements
+            baseMode = hrt.base_mode
+            if baseMode & BALLOON_BASE_MODE_FLIGHT_TERMINATION > 0:
+                flightTermination = True
+
+            if baseMode & BALLOON_BASE_MODE_BURN_START > 0:
+                flightTermBurnStart = True
+
+            if baseMode & BALLOON_BASE_MODE_BURN_END > 0:
+                flightTermBurnEnd = True
+
+            if baseMode & BALLOON_BASE_MODE_PARACHUTE_ARMED > 0:
+                parachuteArmed = True
+
+            if baseMode & BALLOON_BASE_MODE_PARACHUTE_DEPLOYED > 0:
+                parachuteDeployed = True
+
+            if baseMode & BALLOON_BASE_MODE_HEAT_ON > 0:
+                heatOn = True
+
+            if baseMode & BALLOON_BASE_MODE_HEAT_PRIORITY > 0:
+                heatPriority = True
+
+
+            # heater state
+            heater12on = False
+            heater34on = False
+            heater56on = False
+            nichromeon = False
+
+            customMode = hrt.custom_mode
+            if customMode & BALLOON_SYS_COMP_HEATERS_1 > 0:
+                heater12on = True
+
+            if customMode & BALLOON_SYS_COMP_HEATERS_2 > 0:
+                heater34on = True
+
+            if customMode & BALLOON_SYS_COMP_HEATERS_3 > 0:
+                heater56on = True
+
+            if customMode & BALLOON_SYS_COMP_NICHROME_WIRE > 0:
+                nichromeon = True
+
+            state = "unknown"
+            sysState = hrt.system_status
+            if sysState == BALLOON_STATE_ASCENT:
+                state = "Ascent"
+            elif sysState == BALLOON_STATE_BURST:
+                state = "Burst"
+            elif sysState == BALLOON_STATE_FREE_FALL:
+                state = "Free Fall"
+            elif sysState == BALLOON_STATE_DESCENT:
+                state = "Descent"
+
             print("heartbeat received: base: %d,  custom: %d, state: %d\n" % (hrt.base_mode, hrt.custom_mode, hrt.system_status))
 
             # send a heartbeat if received one
@@ -152,7 +216,7 @@ with open(logfile_name, 'ab') as f:
             lat = gps.lat / 10000000.
             lon = gps.lon / 10000000.
             alt = gps.alt / 1000.
-            print("gps raw lat: %f, lon: %f, alt: %d" % (lat, lon, alt))
+            print("gps raw lat: %f, lon: %f, alt: %d\n" % (lat, lon, alt))
 
             if len(prevLocs) < pathLength:
                 prevLocs.append((lon, lat, alt))
@@ -165,6 +229,15 @@ with open(logfile_name, 'ab') as f:
             balloonTrace.coords = prevLocs
 
             pathUpdated = True
+
+        elif msg.get_type() == "TEMP_PRES_SENSOR":
+
+            missionTime = msg.mission_time
+            temp = msg.temperature
+            baroAlt = msg.baro_altitude
+            pressure = msg.pressure
+            print("sensor received: mission time: %d, temp: %f, baro alt: %f, pressure: %f\n" % (missionTime, temp, baroAlt, pressure))
+
 
         # update the KML file as needed
         if pathUpdated:
