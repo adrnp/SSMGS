@@ -108,6 +108,15 @@ class GuiPart:
         self.baro_alt = Tkinter.Label(left_baroalt, text="0")
         self.baro_alt.pack(padx=0, pady=5, side="left")
 
+        # gps alt
+        left_gpsalt = Tkinter.Frame(self.main_frame)
+        left_gpsalt.pack(side="top",fill="x", expand=True)
+        gpsalt_name = Tkinter.Label(left_gpsalt, text="GPS Alt: ")
+        gpsalt_name.pack(padx=5, pady=5, side="left")
+
+        self.gps_alt = Tkinter.Label(left_gpsalt, text="0")
+        self.gps_alt.pack(padx=0, pady=5, side="left")
+
         # radio data
         left_radio1 = Tkinter.Frame(self.main_frame)
         left_radio1.pack(side="top",fill="x", expand=True)
@@ -177,10 +186,6 @@ class GuiPart:
 
                 if msg['type'] == 3:  # heartbeat message
 
-                    print msg['heater12']
-                    print msg['heater34']
-                    print msg['heater56']
-
                     if msg['heater12']:
                         self.heater12.config(bg="green")
                     else:
@@ -230,10 +235,13 @@ class GuiPart:
 
                 elif msg['type'] == 2:  # temp pressure sensor
 
-                    self.mission_time.config(text=msg['mission_time'])
+                    self.mission_time.config(text='{:04.2f}'.format(msg['mission_time']))
                     self.temp.config(text='{:04.2f}'.format(msg['temperature']))
-                    self.pressure.config(text='{:04.2f}'.format(msg['baro_altitude']))
-                    self.baro_alt.config(text='{:04.2f}'.format(msg['pressure']))
+                    self.baro_alt.config(text='{:04.2f}'.format(msg['baro_altitude']))
+                    self.pressure.config(text='{:04.2f}'.format(msg['pressure']))
+
+                elif msg['type'] == 4:  # gps altitude
+                    self.gps_alt.config(text='{:04.2f}'.format(msg['gps_alt']))
 
 
             except Queue.Empty:
@@ -379,19 +387,15 @@ class ThreadedClient:
 
             customMode = hrt.custom_mode
             if customMode & 1 > 0:
-                print "heater12 on\n"
                 heater12on = True
 
             if customMode & 2 > 0:
-                print "heater34 on\n"
                 heater34on = True
 
             if customMode & 4 > 0:
-                print "heater56 on\n"
                 heater56on = True
 
             if customMode & 65536 > 0:
-                print "nichrome on\n"
                 nichromeon = True
 
             state = "unknown"
@@ -423,7 +427,7 @@ class ThreadedClient:
             print("sensor received: mission time: %d, temp: %f, baro alt: %f, pressure: %f\n" % (missionTime, temp, baroAlt, pressure))
 
             returnMsg['type'] = 2
-            returnMsg['mission_time'] = missionTime;
+            returnMsg['mission_time'] = missionTime/1000.0/60.0 - 15.;
             returnMsg['temperature'] = temp
             returnMsg['baro_altitude'] = baroAlt
             returnMsg['pressure'] = pressure
@@ -504,6 +508,12 @@ class ThreadedClient:
                 balloonTrace.coords = prevLocs
 
                 balloonKml.save("balloon.kml")
+
+                toSend = {}
+                toSend['type'] = 4
+                toSend['gps_alt'] = alt
+                self.queue.put(toSend)
+
             else:
                 toSend = self.parseRadioMsg(msg)
                 if toSend:
@@ -511,7 +521,6 @@ class ThreadedClient:
 
             if msg.get_type() == "HEARTBEAT":
                 # send a heartbeat if received one
-                print "sending heartbeat\n"
                 master.mav.heartbeat_send(1, 1, 1, 1, 1)
 
 

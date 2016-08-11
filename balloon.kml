@@ -29,7 +29,7 @@
             <name>balloon</name>
             <styleUrl>#stylesel_1</styleUrl>
             <Point id="geom_0">
-                <coordinates>-122.1732352,37.4271168,43.9</coordinates>
+                <coordinates>-122.1732224,37.4270816,43.3</coordinates>
                 <extrude>1</extrude>
                 <altitudeMode>relativeToGround</altitudeMode>
             </Point>
@@ -38,7 +38,7 @@
             <name>path</name>
             <styleUrl>#stylesel_0</styleUrl>
             <LineString id="geom_1">
-                <coordinates>-122.1732352,37.4271168,42.3 -122.1732352,37.4271168,42.6 -122.1732352,37.4271168,42.7 -122.1732352,37.4271168,43.4 -122.1732352,37.4271168,43.8 -122.1732352,37.4271168,43.8 -122.1732352,37.4271168,43.8 -122.1732352,37.4271168,43.9</coordinates>
+                <coordinates>-122.1732352,37.4270816,42.9 -122.1732352,37.4270816,42.9 -122.1732352,37.4270816,42.9 -122.1732352,37.4270816,42.9 -122.1732352,37.4270816,43.0 -122.1732224,37.4270816,43.2 -122.1732224,37.4270784,43.3 -122.1732224,37.4270816,43.2 -122.1732224,37.4270816,43.3 -122.1732224,37.4270816,43.3</coordinates>
                 <extrude>1</extrude>
                 <altitudeMode>relativeToGround</altitudeMode>
             </LineString>
