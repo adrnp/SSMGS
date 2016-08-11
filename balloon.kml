@@ -26,10 +26,10 @@
         </Style>
         <name>Balloon</name>
         <Placemark id="feat_4">
-            <name>-13.3157894737</name>
+            <name>balloon</name>
             <styleUrl>#stylesel_1</styleUrl>
             <Point id="geom_0">
-                <coordinates>0.0,0.0,0.0</coordinates>
+                <coordinates>-122.1732352,37.4271168,43.9</coordinates>
                 <extrude>1</extrude>
                 <altitudeMode>relativeToGround</altitudeMode>
             </Point>
@@ -38,7 +38,7 @@
             <name>path</name>
             <styleUrl>#stylesel_0</styleUrl>
             <LineString id="geom_1">
-                <coordinates>0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0 0.0,0.0,0.0</coordinates>
+                <coordinates>-122.1732352,37.4271168,42.3 -122.1732352,37.4271168,42.6 -122.1732352,37.4271168,42.7 -122.1732352,37.4271168,43.4 -122.1732352,37.4271168,43.8 -122.1732352,37.4271168,43.8 -122.1732352,37.4271168,43.8 -122.1732352,37.4271168,43.9</coordinates>
                 <extrude>1</extrude>
                 <altitudeMode>relativeToGround</altitudeMode>
             </LineString>

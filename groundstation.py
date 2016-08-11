@@ -62,7 +62,7 @@ args = parser.parse_args()
 logfile_name = "all_logs.csv"
 
 # create a mavlink serial instance
-mavutil.set_dialect('ncl_balloon')
+mavutil.set_dialect('common')
 master = mavutil.mavlink_connection(args.device, baud=args.baudrate, source_system=args.SOURCE_SYSTEM)
 
 
