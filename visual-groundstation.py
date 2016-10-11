@@ -41,6 +41,9 @@ class GuiPart:
         # the button at the bottom
         console = Tkinter.Button(self.base_frame, text='Done', command=endCommand)
         console.pack()
+        self.unit_button = Tkinter.Button(self.base_frame, text="Meters", command=self.change_unit)
+        self.unit_dist_mult = 1.0
+        self.unit_text = "m"
         
         # top bar with the valid states
         self.state_ascent = Tkinter.Label(self.top_frame, text="Ascent", bg="green")
@@ -236,16 +239,27 @@ class GuiPart:
                 elif msg['type'] == 2:  # temp pressure sensor
 
                     self.mission_time.config(text='{:04.2f}'.format(msg['mission_time']))
-                    self.temp.config(text='{:04.2f}'.format(msg['temperature']))
-                    self.baro_alt.config(text='{:04.2f}'.format(msg['baro_altitude']))
-                    self.pressure.config(text='{:04.2f}'.format(msg['pressure']))
+                    self.temp.config(text='{:04.2f} C'.format(msg['temperature']))
+                    self.baro_alt.config(text='{:04.2f} {}'.format(msg['baro_altitude']*self.unit_dist_mult, self.unit_text))
+                    self.pressure.config(text='{:04.2f} Pa'.format(msg['pressure']))
 
                 elif msg['type'] == 4:  # gps altitude
-                    self.gps_alt.config(text='{:04.2f}'.format(msg['gps_alt']))
+                    self.gps_alt.config(text='{:04.2f} {}'.format(msg['gps_alt']*self.unit_dist_mult, self.unit_text))
 
 
             except Queue.Empty:
                 pass
+
+    def change_unit(self):
+        if self.unit_dist_mult == 1.0:  # currently in meters
+            self.unit_dist_mult = 3.28  # feet in a meter
+            self.unit_text = "ft"
+            self.unit_button.config(text="Feet")
+        else:
+            self.unit_dist_mult = 1.0
+            self.unit_text = "m"
+            self.unit_button.config(text="Meters")
+
 
 class ThreadedClient:
     """
@@ -521,7 +535,7 @@ class ThreadedClient:
 
             if msg.get_type() == "HEARTBEAT":
                 # send a heartbeat if received one
-                master.mav.heartbeat_send(1, 1, 1, 1, 1)
+                master.mav.heartbeat_send(2, 2, 2, 2, 2)
 
 
     def endApplication(self):
@@ -535,7 +549,7 @@ parser.add_argument("--baudrate", type=int,
                     help="antenna baud rate", default=57600)
 parser.add_argument("--device", required=True, help="serial device")
 parser.add_argument("--source-system", dest='SOURCE_SYSTEM', type=int,
-                    default=255, help='MAVLink source system for this GCS')
+                    default=250, help='MAVLink source system for this GCS')
 args = parser.parse_args()
 
 
