@@ -44,6 +44,7 @@ class GuiPart:
         self.unit_button = Tkinter.Button(self.base_frame, text="Meters", command=self.change_unit)
         self.unit_dist_mult = 1.0
         self.unit_text = "m"
+        self.unit_button.pack();
         
         # top bar with the valid states
         self.state_ascent = Tkinter.Label(self.top_frame, text="Ascent", bg="green")
