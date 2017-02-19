@@ -15,6 +15,15 @@ from pymavlink import mavutil
 from argparse import ArgumentParser
 
 
+# list of message types that will be used
+MSG_TYPE_RADIO = 1
+MSG_TYPE_HEARTBEAT = 2
+MSG_TYPE_PRESSURE = 3
+MSG_TYPE_GPS = 4
+MSG_TYPE_TEMPERATURE = 5
+MSG_TYPE_COMMAND_ACK = 6
+
+
 class GuiPart:
     def __init__(self, master, queue, endCommand):
         self.queue = queue
@@ -188,19 +197,19 @@ class GuiPart:
             try:
                 msg = self.queue.get(0)
 
-                if msg['type'] == 3:  # heartbeat message
+                if msg['type'] == MSG_TYPE_HEARTBEAT:  # heartbeat message
 
-                    if msg['heater12']:
+                    if msg['heater1']:
                         self.heater12.config(bg="green")
                     else:
                         self.heater12.config(bg=self.defaultbg)
 
-                    if msg['heater34']:
+                    if msg['heater2']:
                         self.heater34.config(bg="green")
                     else:
                         self.heater34.config(bg=self.defaultbg)
 
-                    if msg['heater56']:
+                    if msg['heater3']:
                         self.heater56.config(bg="green")
                     else:
                         self.heater56.config(bg=self.defaultbg)
@@ -227,7 +236,7 @@ class GuiPart:
                         self.state_descent.config(bg="green")
 
 
-                elif msg['type'] == 1:  # radio status
+                elif msg['type'] == MSG_TYPE_RADIO:  # radio status
 
                     self.rssi.config(text='{:04.2f}'.format(msg['rssi']))
                     self.remote_rssi.config(text='{:04.2f}'.format(msg['remote_rssi']))
@@ -237,16 +246,18 @@ class GuiPart:
                     self.remote_fademargin.config(text='{:04.2f}'.format(msg['remote_fade_margin']))
                     self.dist_mult.config(text='{:04.2f}'.format(msg['dist_mult']))
 
-                elif msg['type'] == 2:  # temp pressure sensor
+                elif msg['type'] == MSG_TYPE_PRESSURE:  # temp pressure sensor
 
                     self.mission_time.config(text='{:04.2f}'.format(msg['mission_time']))
-                    self.temp.config(text='{:04.2f} C'.format(msg['temperature']))
                     self.baro_alt.config(text='{:04.2f} {}'.format(msg['baro_altitude']*self.unit_dist_mult, self.unit_text))
                     self.pressure.config(text='{:04.2f} Pa'.format(msg['pressure']))
 
-                elif msg['type'] == 4:  # gps altitude
+                elif msg['type'] == MSG_TYPE_GPS:  # gps altitude
                     self.gps_alt.config(text='{:04.2f} {}'.format(msg['gps_alt']*self.unit_dist_mult, self.unit_text))
 
+                elif msg['type'] == MSG_TYPE_TEMPERATURE:
+                    self.temp.config(text='{:04.2f} C'.format(msg['board_temperature']))
+                    #TODO: add all of the other temps
 
             except Queue.Empty:
                 pass
@@ -345,7 +356,7 @@ class ThreadedClient:
 
             #writer.writerow([lat, lon, alt, localdBm, remdBm, localNoisedBm, remNoisedBm])
 
-            returnMsg['type'] = 1
+            returnMsg['type'] = MSG_TYPE_RADIO
             returnMsg['rssi'] = localdBm
             returnMsg['remote_rssi'] = remdBm
             returnMsg['noise'] = localNoisedBm
@@ -395,20 +406,20 @@ class ThreadedClient:
 
 
             # heater state
-            heater12on = False
-            heater34on = False
-            heater56on = False
+            heater1on = False
+            heater2on = False
+            heater3on = False
             nichromeon = False
 
             customMode = hrt.custom_mode
             if customMode & 1 > 0:
-                heater12on = True
+                heater1on = True
 
             if customMode & 2 > 0:
-                heater34on = True
+                heater2on = True
 
             if customMode & 4 > 0:
-                heater56on = True
+                heater3on = True
 
             if customMode & 65536 > 0:
                 nichromeon = True
@@ -426,26 +437,42 @@ class ThreadedClient:
 
             print("heartbeat received: base: %d,  custom: %d, state: %d\n" % (hrt.base_mode, hrt.custom_mode, hrt.system_status))
 
-            returnMsg['type'] = 3
-            returnMsg['heater12'] = heater12on
-            returnMsg['heater34'] = heater34on
-            returnMsg['heater56'] = heater56on
+            returnMsg['type'] = MSG_TYPE_HEARTBEAT
+            returnMsg['heater1'] = heater1on
+            returnMsg['heater2'] = heater2on
+            returnMsg['heater3'] = heater3on
             returnMsg['state'] = state
 
             
-        elif msg.get_type() == "TEMP_PRES_SENSOR":
+        elif msg.get_type() == "TEMP_SENSORS":
+
+            timestamp = msg.time_usec  # I don't think this is really needed
+            tempArray = msg.temperature
+            boardTemp = msg.board_temperature
+            print("temp received: board temp: %f\n" % (boardTemp))
+
+            returnMsg['type'] = MSG_TYPE_TEMPERATURE
+            returnMsg['temperature_array'] = tempArray
+            returnMsg['board_temperature'] = boardTemp
+
+        elif msg.get_type() == "PRESSURE_SENSOR":
 
             missionTime = msg.mission_time
-            temp = msg.temperature
             baroAlt = msg.baro_altitude
             pressure = msg.pressure
-            print("sensor received: mission time: %d, temp: %f, baro alt: %f, pressure: %f\n" % (missionTime, temp, baroAlt, pressure))
+            print("sensor received: mission time: %d, baro alt: %f, pressure: %f\n" % (missionTime, baroAlt, pressure))
 
-            returnMsg['type'] = 2
-            returnMsg['mission_time'] = missionTime/1000.0/60.0 - 15.;
-            returnMsg['temperature'] = temp
+            returnMsg['type'] = MSG_TYPE_PRESSURE
+            returnMsg['mission_time'] = missionTime/1000/60;  # convert milliseconds to minutes
             returnMsg['baro_altitude'] = baroAlt
             returnMsg['pressure'] = pressure
+
+        elif msg.get_type() == "COMMAND_ACK":
+
+            res = msg.result
+            print("received ack of the nichrome command\n")
+
+            returnMsg['type'] = MSG_TYPE_COMMAND_ACK
 
         return returnMsg
 
@@ -525,7 +552,7 @@ class ThreadedClient:
                 balloonKml.save("balloon.kml")
 
                 toSend = {}
-                toSend['type'] = 4
+                toSend['type'] = MSG_TYPE_GPS
                 toSend['gps_alt'] = alt
                 self.queue.put(toSend)
 
