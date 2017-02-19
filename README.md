@@ -26,3 +26,12 @@ where `DEVICE` on Windows will be something like `COM1` and on Linux it will be 
 ### To View the Map ###
 
 simply open up the *balloon_link.kml* file in Google Earth and viola!
+
+
+## Custom Mavlink Protocol ##
+
+If you want to use a custom dialect for Mavlink (such as being done here) there is one additional necessary step to be able to use that dialect.  In this case all the definitions can be found in the `ncl_ground.py` file.
+
+To use the `ncl_ground` dialect, we need to place the `ncl_ground.py` file into pymavlink's dialect folder on your machine.  For a Windows machine with python installed via Anaconda, this can be found at `C:\Users\USERNAME\Anaconda2\Lib\site-packages\pymavlink\dialects\v10`.
+
+Simply copy and paste `ncl_ground.py` into that folder and then you'll be good to go!

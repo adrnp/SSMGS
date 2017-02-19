@@ -460,7 +460,7 @@ class ThreadedClient:
 
         
         # create a mavlink serial instance
-        mavutil.set_dialect('ncl_balloon')
+        mavutil.set_dialect('ncl_ground')
         master = mavutil.mavlink_connection(self.device, baud=self.baudrate, source_system=self.source_system)
 
 
