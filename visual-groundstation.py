@@ -53,7 +53,11 @@ class GuiPart:
         self.unit_button = Tkinter.Button(self.base_frame, text="Meters", command=self.change_unit)
         self.unit_dist_mult = 1.0
         self.unit_text = "m"
-        self.unit_button.pack();
+        self.unit_button.pack()
+        self.cut_button = Tkinter.Button(self.base_frame, text="Cutdown", command=self.send_cutdown_command)
+        self.cutdown_ack_received = False
+        self.send_cutdown_command = False
+        self.cut_button.pack()
         
         # top bar with the valid states
         self.state_ascent = Tkinter.Label(self.top_frame, text="Ascent", bg="green")
@@ -82,13 +86,13 @@ class GuiPart:
         left_heater.pack(side="top",fill="x", expand=True)
         heater_title = Tkinter.Label(left_heater, text="Heater Information")
         heater_title.pack(side="top")
-        self.heater12 = Tkinter.Label(left_heater, text="heater 12")
+        self.heater12 = Tkinter.Label(left_heater, text="heater 1")
         self.heater12.pack(padx=5, pady=10, side="left")
 
-        self.heater34 = Tkinter.Label(left_heater, text="heater 34")
+        self.heater34 = Tkinter.Label(left_heater, text="heater 2")
         self.heater34.pack(padx=5, pady=10, side="left")
 
-        self.heater56 = Tkinter.Label(left_heater, text="heater 56")
+        self.heater56 = Tkinter.Label(left_heater, text="heater 3")
         self.heater56.pack(padx=5, pady=10, side="left")
 
         
@@ -258,6 +262,10 @@ class GuiPart:
                 elif msg['type'] == MSG_TYPE_TEMPERATURE:
                     self.temp.config(text='{:04.2f} C'.format(msg['board_temperature']))
                     #TODO: add all of the other temps
+                
+                elif msg['type'] == MSG_TYPE_COMMAND_ACK:
+                    # mark the command as having been successfully received (no longer need to send the command)
+                    self.cutdown_ack_received = True
 
             except Queue.Empty:
                 pass
@@ -271,6 +279,13 @@ class GuiPart:
             self.unit_dist_mult = 1.0
             self.unit_text = "m"
             self.unit_button.config(text="Meters")
+
+    def send_cutdown_command(self):
+        # mark as having to need to send the cutdown command
+        # TODO: this needs to somehow actually continually try sending the command
+        # need to see how to send data back to the thread command
+        if not self.cutdown_ack_received:
+            self.send_cutdown_command = True
 
 
 class ThreadedClient:
@@ -563,7 +578,19 @@ class ThreadedClient:
 
             if msg.get_type() == "HEARTBEAT":
                 # send a heartbeat if received one
-                master.mav.heartbeat_send(2, 2, 2, 2, 2)
+                target_system = 1
+                target_component = 2
+                master.mav.heartbeat_send(target_system, target_component, 2, 2, 2)
+
+            # send a cutdown command if needed
+            if self.gui.send_cutdown_command:
+                target_system = 1
+                target_component = 2
+                command = MAV_CMD_NAV_LAND
+                confirmation = 0
+                param1 = 0
+                param2 = 0
+                master.mav.command_short_send(target_system, target_component, command, confirmation, param1, param2)
 
 
     def endApplication(self):
