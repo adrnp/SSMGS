@@ -266,6 +266,8 @@ class GuiPart:
                 elif msg['type'] == MSG_TYPE_COMMAND_ACK:
                     # mark the command as having been successfully received (no longer need to send the command)
                     self.cutdown_ack_received = True
+                    self.send_cutdown_command = False
+                    print("cmd ack received")
 
             except Queue.Empty:
                 pass
@@ -584,9 +586,10 @@ class ThreadedClient:
 
             # send a cutdown command if needed
             if self.gui.send_cutdown_command:
+                print("sending cutdown command")
                 target_system = 1
                 target_component = 2
-                command = MAV_CMD_NAV_LAND
+                command = 21 # MAV_CMD_NAV_LAND
                 confirmation = 0
                 param1 = 0
                 param2 = 0
