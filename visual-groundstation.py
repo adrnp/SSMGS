@@ -2,19 +2,18 @@
 TKinter based ground station
 """
 
+import os
+import time
+import random
+import threading
+import Queue
+import csv
+from argparse import ArgumentParser
+from pymavlink import mavutil
+
+import simplekml
 import Tkinter
 import tkMessageBox
-import time
-import threading
-import random
-import Queue
-
-import os
-import simplekml
-import csv
-from pymavlink import mavutil
-from argparse import ArgumentParser
-
 
 # list of message types that will be used
 MSG_TYPE_RADIO = 1
@@ -26,15 +25,9 @@ MSG_TYPE_COMMAND_ACK = 6
 
 
 class GuiPart:
+
     def __init__(self, master, queue, endCommand):
         self.queue = queue
-        # Set up the GUI
-        #console = Tkinter.Button(master, text='Done', command=endCommand)
-        #console.pack()
-
-        #T = Tkinter.Text(master, height=2, width=30)
-        #T.pack()
-        #T.insert(1.0, "Just a text Widget\nin two lines\n")
 
         self.main_container = Tkinter.Frame(master, background="bisque")
         self.main_container.pack(side="top", fill="both", expand=True)
@@ -55,11 +48,12 @@ class GuiPart:
         self.unit_dist_mult = 1.0
         self.unit_text = "m"
         self.unit_button.pack()
-        self.cut_button = Tkinter.Button(self.base_frame, text="Cutdown", command=self.send_cutdown_command)
+        self.cut_button = Tkinter.Button(
+            self.base_frame, text="Cutdown", command=self.cutdown_button_fn)
         self.cutdown_ack_received = False
         self.send_cutdown_command = False
         self.cut_button.pack()
-        
+
         # top bar with the valid states
         self.state_ascent = Tkinter.Label(self.top_frame, text="Ascent", bg="green")
         self.state_ascent.pack(padx=5, pady=10, side="left")
@@ -75,7 +69,7 @@ class GuiPart:
 
         # mission time
         left_mission_time = Tkinter.Frame(self.main_frame)
-        left_mission_time.pack(side="top",fill="x", expand=True)
+        left_mission_time.pack(side="top", fill="x", expand=True)
         mission_time_name = Tkinter.Label(left_mission_time, text="Mission Time: ")
         mission_time_name.pack(padx=5, pady=10, side="left")
 
@@ -84,7 +78,7 @@ class GuiPart:
 
         # the heater information
         left_heater = Tkinter.Frame(self.main_frame)
-        left_heater.pack(side="top",fill="x", expand=True)
+        left_heater.pack(side="top", fill="x", expand=True)
         heater_title = Tkinter.Label(left_heater, text="Heater Information")
         heater_title.pack(side="top")
         self.heater12 = Tkinter.Label(left_heater, text="heater 1")
@@ -96,10 +90,9 @@ class GuiPart:
         self.heater56 = Tkinter.Label(left_heater, text="heater 3")
         self.heater56.pack(padx=5, pady=10, side="left")
 
-        
         # temp data
         left_temp = Tkinter.Frame(self.main_frame)
-        left_temp.pack(side="top",fill="x", expand=True)
+        left_temp.pack(side="top", fill="x", expand=True)
         sensor_title = Tkinter.Label(left_temp, text="Sensor Info")
         sensor_title.pack(side="top")
         temp_name = Tkinter.Label(left_temp, text="Temperature: ")
@@ -110,7 +103,7 @@ class GuiPart:
 
         # pressure data
         left_pressure = Tkinter.Frame(self.main_frame)
-        left_pressure.pack(side="top",fill="x", expand=True)
+        left_pressure.pack(side="top", fill="x", expand=True)
         pressure_name = Tkinter.Label(left_pressure, text="Pressure: ")
         pressure_name.pack(padx=5, pady=5, side="left")
 
@@ -119,7 +112,7 @@ class GuiPart:
 
         # baro alt
         left_baroalt = Tkinter.Frame(self.main_frame)
-        left_baroalt.pack(side="top",fill="x", expand=True)
+        left_baroalt.pack(side="top", fill="x", expand=True)
         baroalt_name = Tkinter.Label(left_baroalt, text="Baro Alt: ")
         baroalt_name.pack(padx=5, pady=5, side="left")
 
@@ -128,7 +121,7 @@ class GuiPart:
 
         # gps alt
         left_gpsalt = Tkinter.Frame(self.main_frame)
-        left_gpsalt.pack(side="top",fill="x", expand=True)
+        left_gpsalt.pack(side="top", fill="x", expand=True)
         gpsalt_name = Tkinter.Label(left_gpsalt, text="GPS Alt: ")
         gpsalt_name.pack(padx=5, pady=5, side="left")
 
@@ -137,7 +130,7 @@ class GuiPart:
 
         # radio data
         left_radio1 = Tkinter.Frame(self.main_frame)
-        left_radio1.pack(side="top",fill="x", expand=True)
+        left_radio1.pack(side="top", fill="x", expand=True)
         radio_title = Tkinter.Label(left_radio1, text="Radio Info")
         radio_title.pack(side="top")
         rssi_name = Tkinter.Label(left_radio1, text="RSSI: ")
@@ -154,7 +147,7 @@ class GuiPart:
 
         # radio noise
         left_radio2 = Tkinter.Frame(self.main_frame)
-        left_radio2.pack(side="top",fill="x", expand=True)
+        left_radio2.pack(side="top", fill="x", expand=True)
         noise_name = Tkinter.Label(left_radio2, text="Noise: ")
         noise_name.pack(padx=5, pady=5, side="left")
 
@@ -169,7 +162,7 @@ class GuiPart:
 
         # radio fade margin
         left_radio3 = Tkinter.Frame(self.main_frame)
-        left_radio3.pack(side="top",fill="x", expand=True)
+        left_radio3.pack(side="top", fill="x", expand=True)
         fm_name = Tkinter.Label(left_radio3, text="Fade Margin: ")
         fm_name.pack(padx=5, pady=5, side="left")
 
@@ -184,16 +177,81 @@ class GuiPart:
 
         # radio distance multiplier
         left_radio4 = Tkinter.Frame(self.main_frame)
-        left_radio4.pack(side="top",fill="x", expand=True)
+        left_radio4.pack(side="top", fill="x", expand=True)
         dist_mult_name = Tkinter.Label(left_radio4, text="Dist Mult: ")
         dist_mult_name.pack(padx=5, pady=5, side="left")
 
         self.dist_mult = Tkinter.Label(left_radio4, text="0")
         self.dist_mult.pack(padx=0, pady=5, side="left")
 
-
         # Add more GUI stuff here
 
+    def processHeartbeat(self, msg):
+        if msg['heater1']:
+            self.heater12.config(bg="green")
+        else:
+            self.heater12.config(bg=self.defaultbg)
+
+        if msg['heater2']:
+            self.heater34.config(bg="green")
+        else:
+            self.heater34.config(bg=self.defaultbg)
+
+        if msg['heater3']:
+            self.heater56.config(bg="green")
+        else:
+            self.heater56.config(bg=self.defaultbg)
+
+        if msg['state'] == "Ascent":
+            self.state_ascent.config(bg="green")
+            self.state_burst.config(bg=self.defaultbg)
+            self.state_free_fall.config(bg=self.defaultbg)
+            self.state_descent.config(bg=self.defaultbg)
+        elif msg['state'] == "Burst":
+            self.state_ascent.config(bg=self.defaultbg)
+            self.state_burst.config(bg="green")
+            self.state_free_fall.config(bg=self.defaultbg)
+            self.state_descent.config(bg=self.defaultbg)
+        elif msg['state'] == "Free Fall":
+            self.state_ascent.config(bg=self.defaultbg)
+            self.state_burst.config(bg=self.defaultbg)
+            self.state_free_fall.config(bg="green")
+            self.state_descent.config(bg=self.defaultbg)
+        elif msg['state'] == "Descent":
+            self.state_ascent.config(bg=self.defaultbg)
+            self.state_burst.config(bg=self.defaultbg)
+            self.state_free_fall.config(bg=self.defaultbg)
+            self.state_descent.config(bg="green")
+
+    def processRadio(self, msg):
+        self.rssi.config(text='{:04.2f}'.format(msg['rssi']))
+        self.remote_rssi.config(text='{:04.2f}'.format(msg['remote_rssi']))
+        self.noise.config(text='{:04.2f}'.format(msg['noise']))
+        self.remote_noise.config(text='{:04.2f}'.format(msg['remote_noise']))
+        self.fademargin.config(text='{:04.2f}'.format(msg['fade_margin']))
+        self.remote_fademargin.config(text='{:04.2f}'.format(msg['remote_fade_margin']))
+        self.dist_mult.config(text='{:04.2f}'.format(msg['dist_mult']))
+
+    def processPressure(self, msg):
+        self.mission_time.config(text='{:04.2f}'.format(msg['mission_time']))
+        self.baro_alt.config(text='{:04.2f} {}'.format(
+            msg['baro_altitude'] * self.unit_dist_mult, self.unit_text))
+        self.pressure.config(text='{:04.2f} Pa'.format(msg['pressure']))
+
+    def processGPS(self, msg):
+        self.gps_alt.config(text='{:04.2f} {}'.format(
+            msg['gps_alt'] * self.unit_dist_mult, self.unit_text))
+
+    def processTemperature(self, msg):
+        self.temp.config(text='{:04.2f} C'.format(msg['board_temperature']))
+        # TODO: add all of the other temps
+
+    def processAck(self, msg):
+        # mark the command as having been successfully received (no longer need to
+        # send the command)
+        self.cutdown_ack_received = True
+        self.send_cutdown_command = False
+        print("cmd ack received")
 
     def processIncoming(self):
         """
@@ -204,72 +262,22 @@ class GuiPart:
                 msg = self.queue.get(0)
 
                 if msg['type'] == MSG_TYPE_HEARTBEAT:  # heartbeat message
-
-                    if msg['heater1']:
-                        self.heater12.config(bg="green")
-                    else:
-                        self.heater12.config(bg=self.defaultbg)
-
-                    if msg['heater2']:
-                        self.heater34.config(bg="green")
-                    else:
-                        self.heater34.config(bg=self.defaultbg)
-
-                    if msg['heater3']:
-                        self.heater56.config(bg="green")
-                    else:
-                        self.heater56.config(bg=self.defaultbg)
-
-                    if msg['state'] == "Ascent":
-                        self.state_ascent.config(bg="green")
-                        self.state_burst.config(bg=self.defaultbg)
-                        self.state_free_fall.config(bg=self.defaultbg)
-                        self.state_descent.config(bg=self.defaultbg)
-                    elif msg['state'] == "Burst":
-                        self.state_ascent.config(bg=self.defaultbg)
-                        self.state_burst.config(bg="green")
-                        self.state_free_fall.config(bg=self.defaultbg)
-                        self.state_descent.config(bg=self.defaultbg)
-                    elif msg['state'] == "Free Fall":
-                        self.state_ascent.config(bg=self.defaultbg)
-                        self.state_burst.config(bg=self.defaultbg)
-                        self.state_free_fall.config(bg="green")
-                        self.state_descent.config(bg=self.defaultbg)
-                    elif msg['state'] == "Descent":
-                        self.state_ascent.config(bg=self.defaultbg)
-                        self.state_burst.config(bg=self.defaultbg)
-                        self.state_free_fall.config(bg=self.defaultbg)
-                        self.state_descent.config(bg="green")
-
+                    processHeartbeat(msg)
 
                 elif msg['type'] == MSG_TYPE_RADIO:  # radio status
-
-                    self.rssi.config(text='{:04.2f}'.format(msg['rssi']))
-                    self.remote_rssi.config(text='{:04.2f}'.format(msg['remote_rssi']))
-                    self.noise.config(text='{:04.2f}'.format(msg['noise']))
-                    self.remote_noise.config(text='{:04.2f}'.format(msg['remote_noise']))
-                    self.fademargin.config(text='{:04.2f}'.format(msg['fade_margin']))
-                    self.remote_fademargin.config(text='{:04.2f}'.format(msg['remote_fade_margin']))
-                    self.dist_mult.config(text='{:04.2f}'.format(msg['dist_mult']))
+                    processRadio(msg)
 
                 elif msg['type'] == MSG_TYPE_PRESSURE:  # temp pressure sensor
-
-                    self.mission_time.config(text='{:04.2f}'.format(msg['mission_time']))
-                    self.baro_alt.config(text='{:04.2f} {}'.format(msg['baro_altitude']*self.unit_dist_mult, self.unit_text))
-                    self.pressure.config(text='{:04.2f} Pa'.format(msg['pressure']))
+                    processPressure(msg)
 
                 elif msg['type'] == MSG_TYPE_GPS:  # gps altitude
-                    self.gps_alt.config(text='{:04.2f} {}'.format(msg['gps_alt']*self.unit_dist_mult, self.unit_text))
+                    processGP(msg)
 
                 elif msg['type'] == MSG_TYPE_TEMPERATURE:
-                    self.temp.config(text='{:04.2f} C'.format(msg['board_temperature']))
-                    #TODO: add all of the other temps
-                
+                    processTemperature(msg)
+
                 elif msg['type'] == MSG_TYPE_COMMAND_ACK:
-                    # mark the command as having been successfully received (no longer need to send the command)
-                    self.cutdown_ack_received = True
-                    self.send_cutdown_command = False
-                    print("cmd ack received")
+                    processAck(msg)
 
             except Queue.Empty:
                 pass
@@ -284,11 +292,12 @@ class GuiPart:
             self.unit_text = "m"
             self.unit_button.config(text="Meters")
 
-    def send_cutdown_command(self):
+    def cutdown_button_fn(self):
         # mark as having to need to send the cutdown command
         # TODO: this needs to somehow actually continually try sending the command
         # need to see how to send data back to the thread command
-        result = tkMessageBox.askquestion("Cutdown", "you sure you want to do that?", icon='warning')
+        result = tkMessageBox.askquestion(
+            "Cutdown", "you sure you want to do that?", icon='warning')
         if result == 'yes':
             print "you wanted it!"
             if not self.cutdown_ack_received:
@@ -303,6 +312,7 @@ class ThreadedClient:
     endApplication could reside in the GUI part, but putting them here
     means that you have all the thread controls in a single place.
     """
+
     def __init__(self, master, device, baudrate, source_system):
         """
         Start the GUI and the asynchronous threads. We are in the main
@@ -323,7 +333,7 @@ class ThreadedClient:
         # Set up the thread to do asynchronous I/O
         # More can be made if necessary
         self.running = 1
-    	self.thread1 = threading.Thread(target=self.workerThread1)
+        self.thread1 = threading.Thread(target=self.workerThread1)
         self.thread1.start()
 
         # Start the periodic call in the GUI to check if the queue contains
@@ -342,12 +352,10 @@ class ThreadedClient:
             sys.exit(1)
         self.master.after(100, self.periodicCall)
 
-
     def get_next_msg(self, m):
         # wait for the next message
         msg = m.recv_match(blocking=True)
         return msg
-
 
     def create_network_link(self):
         # create a network link file for for the balloon
@@ -358,148 +366,164 @@ class ThreadedClient:
         networklink.link.refreshinterval = 1.0
         linkKml.save("balloon_link.kml")
 
+    def parseRadioStatus(self, status):
+        returnMsg = {}
+        localdBm = (status.rssi / 1.9) - 127
+        localNoisedBm = (status.noise / 1.9) - 127
+        remdBm = (status.remrssi / 1.9) - 127
+        remNoisedBm = (status.remnoise / 1.9) - 127
+
+        localFadeMargin = localdBm - localNoisedBm
+        remFadeMargin = remdBm - remNoisedBm
+        distMultipler = 2**(localFadeMargin / 6)
+
+        returnMsg['type'] = MSG_TYPE_RADIO
+        returnMsg['rssi'] = localdBm
+        returnMsg['remote_rssi'] = remdBm
+        returnMsg['noise'] = localNoisedBm
+        returnMsg['remote_noise'] = remNoisedBm
+        returnMsg['fade_margin'] = localFadeMargin
+        returnMsg['remote_fade_margin'] = remFadeMargin
+        returnMsg['dist_mult'] = distMultipler
+
+        print("rssi: %f dBm, remrssi: %f dBm, noise: %f dBm, remnoise: %f dBm, rxerrors: %f\n" %
+              (localdBm, remdBm, localNoisedBm, remNoisedBm, status.rxerrors))
+        print("local fade margin: %f dB, remote fade margin: %f dB, distance multiplier: %f\n" %
+              (localFadeMargin, remFadeMargin, distMultipler))
+
+        return returnMsg
+
+    def parseHeartbeat(self, hrt):
+        returnMsg = {}
+
+        # all of the flags
+        flightTermFlag = False
+        flightTermBurnStart = False
+        flightTermBurnEnd = False
+        parachuteArmed = False
+        parachuteDeployed = False
+        heatOn = False
+        heatPriority = False
+
+        # parse out the base mode elements
+        baseMode = hrt.base_mode
+        if baseMode & 1 > 0:
+            flightTermination = True
+
+        if baseMode & 2 > 0:
+            flightTermBurnStart = True
+
+        if baseMode & 4 > 0:
+            flightTermBurnEnd = True
+
+        if baseMode & 8 > 0:
+            parachuteArmed = True
+
+        if baseMode & 16 > 0:
+            parachuteDeployed = True
+
+        if baseMode & 32 > 0:
+            heatOn = True
+
+        if baseMode & 64 > 0:
+            heatPriority = True
+
+        # heater state
+        heater1on = False
+        heater2on = False
+        heater3on = False
+        nichromeon = False
+
+        customMode = hrt.custom_mode
+        if customMode & 1 > 0:
+            heater1on = True
+
+        if customMode & 2 > 0:
+            heater2on = True
+
+        if customMode & 4 > 0:
+            heater3on = True
+
+        if customMode & 65536 > 0:
+            nichromeon = True
+
+        state = "unknown"
+        sysState = hrt.system_status
+        if sysState == 0:
+            state = "Ascent"
+        elif sysState == 1:
+            state = "Burst"
+        elif sysState == 2:
+            state = "Free Fall"
+        elif sysState == 3:
+            state = "Descent"
+
+        print("heartbeat received: base: %d,  custom: %d, state: %d\n" %
+              (hrt.base_mode, hrt.custom_mode, hrt.system_status))
+
+        returnMsg['type'] = MSG_TYPE_HEARTBEAT
+        returnMsg['heater1'] = heater1on
+        returnMsg['heater2'] = heater2on
+        returnMsg['heater3'] = heater3on
+        returnMsg['state'] = state
+        return returnMsg
+
+    def parseTemperature(self, msg):
+        returnMsg = {}
+        timestamp = msg.time_usec  # I don't think this is really needed
+        tempArray = msg.temperature
+        boardTemp = msg.board_temperature
+        print("temp received: board temp: %f\n" % (boardTemp))
+
+        returnMsg['type'] = MSG_TYPE_TEMPERATURE
+        returnMsg['temperature_array'] = tempArray
+        returnMsg['board_temperature'] = boardTemp
+        return returnMsg
+
+    def parsePressure(self, msg):
+        returnMsg = {}
+        missionTime = msg.mission_time
+        baroAlt = msg.baro_altitude
+        pressure = msg.pressure
+        print("sensor received: mission time: %d, baro alt: %f, pressure: %f\n" %
+              (missionTime, baroAlt, pressure))
+
+        returnMsg['type'] = MSG_TYPE_PRESSURE
+        returnMsg['mission_time'] = missionTime / 1000 / 60  # convert milliseconds to minutes
+        returnMsg['baro_altitude'] = baroAlt
+        returnMsg['pressure'] = pressure
+        return returnMsg
+
+    def parseAck(self, msg):
+        returnMsg = {}
+        res = msg.result
+        print("received ack of the nichrome command\n")
+
+        returnMsg['type'] = MSG_TYPE_COMMAND_ACK
+        return returnMsg
+
     def parseRadioMsg(self, msg):
 
         returnMsg = {}
 
         # get the radio status
         if msg.get_type() == "RADIO_STATUS":
-            status = msg
-            localdBm = (status.rssi / 1.9) - 127
-            localNoisedBm = (status.noise / 1.9) - 127
-            remdBm = (status.remrssi / 1.9) - 127
-            remNoisedBm = (status.remnoise / 1.9) - 127
-
-            localFadeMargin = localdBm - localNoisedBm
-            remFadeMargin = remdBm - remNoisedBm
-
-            distMultipler = 2**(localFadeMargin/6)
-
-            #balloonPt.name = str(localdBm)
-            #pathUpdated = True
-
-            #writer.writerow([lat, lon, alt, localdBm, remdBm, localNoisedBm, remNoisedBm])
-
-            returnMsg['type'] = MSG_TYPE_RADIO
-            returnMsg['rssi'] = localdBm
-            returnMsg['remote_rssi'] = remdBm
-            returnMsg['noise'] = localNoisedBm
-            returnMsg['remote_noise'] = remNoisedBm
-            returnMsg['fade_margin'] = localFadeMargin
-            returnMsg['remote_fade_margin'] = remFadeMargin
-            returnMsg['dist_mult'] = distMultipler
-
-            print("rssi: %f dBm, remrssi: %f dBm, noise: %f dBm, remnoise: %f dBm, rxerrors: %f\n" % (localdBm, remdBm, localNoisedBm, remNoisedBm, status.rxerrors))
-            print("local fade margin: %f dB, remote fade margin: %f dB, distance multiplier: %f\n" % (localFadeMargin, remFadeMargin, distMultipler))
+            returnMsg = parseRadioMsg(msg)
 
         # get the heartbeat (doing this to be able to send a heartbeat)
         elif msg.get_type() == "HEARTBEAT":
-            hrt = msg
+            returnMsg = parseHeartbeat(msg)
 
-            # all of the flags
-            flightTermFlag = False
-            flightTermBurnStart = False
-            flightTermBurnEnd = False
-            parachuteArmed = False
-            parachuteDeployed = False
-            heatOn = False
-            heatPriority = False
-
-            # parse out the base mode elements
-            baseMode = hrt.base_mode
-            if baseMode & 1 > 0:
-                flightTermination = True
-
-            if baseMode & 2 > 0:
-                flightTermBurnStart = True
-
-            if baseMode & 4 > 0:
-                flightTermBurnEnd = True
-
-            if baseMode & 8 > 0:
-                parachuteArmed = True
-
-            if baseMode & 16 > 0:
-                parachuteDeployed = True
-
-            if baseMode & 32 > 0:
-                heatOn = True
-
-            if baseMode & 64 > 0:
-                heatPriority = True
-
-
-            # heater state
-            heater1on = False
-            heater2on = False
-            heater3on = False
-            nichromeon = False
-
-            customMode = hrt.custom_mode
-            if customMode & 1 > 0:
-                heater1on = True
-
-            if customMode & 2 > 0:
-                heater2on = True
-
-            if customMode & 4 > 0:
-                heater3on = True
-
-            if customMode & 65536 > 0:
-                nichromeon = True
-
-            state = "unknown"
-            sysState = hrt.system_status
-            if sysState == 0:
-                state = "Ascent"
-            elif sysState == 1:
-                state = "Burst"
-            elif sysState == 2:
-                state = "Free Fall"
-            elif sysState == 3:
-                state = "Descent"
-
-            print("heartbeat received: base: %d,  custom: %d, state: %d\n" % (hrt.base_mode, hrt.custom_mode, hrt.system_status))
-
-            returnMsg['type'] = MSG_TYPE_HEARTBEAT
-            returnMsg['heater1'] = heater1on
-            returnMsg['heater2'] = heater2on
-            returnMsg['heater3'] = heater3on
-            returnMsg['state'] = state
-
-            
         elif msg.get_type() == "TEMP_SENSORS":
-
-            timestamp = msg.time_usec  # I don't think this is really needed
-            tempArray = msg.temperature
-            boardTemp = msg.board_temperature
-            print("temp received: board temp: %f\n" % (boardTemp))
-
-            returnMsg['type'] = MSG_TYPE_TEMPERATURE
-            returnMsg['temperature_array'] = tempArray
-            returnMsg['board_temperature'] = boardTemp
+            returnMsg = parseTemperature(msg)
 
         elif msg.get_type() == "PRESSURE_SENSOR":
-
-            missionTime = msg.mission_time
-            baroAlt = msg.baro_altitude
-            pressure = msg.pressure
-            print("sensor received: mission time: %d, baro alt: %f, pressure: %f\n" % (missionTime, baroAlt, pressure))
-
-            returnMsg['type'] = MSG_TYPE_PRESSURE
-            returnMsg['mission_time'] = missionTime/1000/60;  # convert milliseconds to minutes
-            returnMsg['baro_altitude'] = baroAlt
-            returnMsg['pressure'] = pressure
+            returnMsg = parsePressure(msg)
 
         elif msg.get_type() == "COMMAND_ACK":
-
-            res = msg.result
-            print("received ack of the nichrome command\n")
-
-            returnMsg['type'] = MSG_TYPE_COMMAND_ACK
+            returnMsg = parseAck(msg)
 
         return returnMsg
-
 
     def workerThread1(self):
         """
@@ -509,11 +533,10 @@ class ThreadedClient:
         control.
         """
 
-        
         # create a mavlink serial instance
         mavutil.set_dialect('ncl_ground')
-        master = mavutil.mavlink_connection(self.device, baud=self.baudrate, source_system=self.source_system)
-
+        master = mavutil.mavlink_connection(
+            self.device, baud=self.baudrate, source_system=self.source_system)
 
         # create a network link file
         self.create_network_link()
@@ -521,7 +544,8 @@ class ThreadedClient:
         # style to be used
         styleGreen = simplekml.Style()
         styleGreen.linestyle.color = simplekml.Color.green
-        styleGreen.polystyle.color = simplekml.Color.changealphaint(180, simplekml.Color.forestgreen)
+        styleGreen.polystyle.color = simplekml.Color.changealphaint(
+            180, simplekml.Color.forestgreen)
         styleGreen.linestyle.width = 2
 
         # setup the ballon animation KML
@@ -540,15 +564,15 @@ class ThreadedClient:
         balloonTrace.extrude = 1
 
         prevLocs = []
-        pathLength = 150  # how many points to save in the trace (if set to -1, then will add all points, this will generate a huge file)
+        # how many points to save in the trace (if set to -1, then will add all
+        # points, this will generate a huge file)
+        pathLength = 150
         haveFirstPos = False
-
 
         # define all the variables here
         lat = 0.0
         lon = 0.0
         alt = 0.0
-        
 
         while self.running:
 
@@ -596,12 +620,12 @@ class ThreadedClient:
                 print("sending cutdown command")
                 target_system = 1
                 target_component = 2
-                command = 21 # MAV_CMD_NAV_LAND
+                command = 21  # MAV_CMD_NAV_LAND
                 confirmation = 0
                 param1 = 0
                 param2 = 0
-                master.mav.command_short_send(target_system, target_component, command, confirmation, param1, param2)
-
+                master.mav.command_short_send(
+                    target_system, target_component, command, confirmation, param1, param2)
 
     def endApplication(self):
         self.running = 0
