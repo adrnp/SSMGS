@@ -3,6 +3,7 @@ TKinter based ground station
 """
 
 import Tkinter
+import tkMessageBox
 import time
 import threading
 import random
@@ -193,6 +194,7 @@ class GuiPart:
 
         # Add more GUI stuff here
 
+
     def processIncoming(self):
         """
         Handle all the messages currently in the queue (if any).
@@ -286,8 +288,13 @@ class GuiPart:
         # mark as having to need to send the cutdown command
         # TODO: this needs to somehow actually continually try sending the command
         # need to see how to send data back to the thread command
-        if not self.cutdown_ack_received:
-            self.send_cutdown_command = True
+        result = tkMessageBox.askquestion("Cutdown", "you sure you want to do that?", icon='warning')
+        if result == 'yes':
+            print "you wanted it!"
+            if not self.cutdown_ack_received:
+                self.send_cutdown_command = True
+        else:
+            print "don't click the button then!"
 
 
 class ThreadedClient:
