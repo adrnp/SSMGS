@@ -81,25 +81,101 @@ class GuiPart:
         left_heater.pack(side="top", fill="x", expand=True)
         heater_title = Tkinter.Label(left_heater, text="Heater Information")
         heater_title.pack(side="top")
-        self.heater12 = Tkinter.Label(left_heater, text="heater 1")
-        self.heater12.pack(padx=5, pady=10, side="left")
+        self.heater1 = Tkinter.Label(left_heater, text="h1")
+        self.heater1.pack(padx=5, pady=10, side="left")
 
-        self.heater34 = Tkinter.Label(left_heater, text="heater 2")
-        self.heater34.pack(padx=5, pady=10, side="left")
+        self.heater2 = Tkinter.Label(left_heater, text="h2")
+        self.heater2.pack(padx=5, pady=10, side="left")
 
-        self.heater56 = Tkinter.Label(left_heater, text="heater 3")
-        self.heater56.pack(padx=5, pady=10, side="left")
+        self.heater3 = Tkinter.Label(left_heater, text="h3")
+        self.heater3.pack(padx=5, pady=10, side="left")
+
+        self.heater4 = Tkinter.Label(left_heater, text="h4")
+        self.heater4.pack(padx=5, pady=10, side="left")
+
+        self.heater5 = Tkinter.Label(left_heater, text="h5")
+        self.heater5.pack(padx=5, pady=10, side="left")
+
+        self.heater6 = Tkinter.Label(left_heater, text="h6")
+        self.heater6.pack(padx=5, pady=10, side="left")
 
         # temp data
         left_temp = Tkinter.Frame(self.main_frame)
         left_temp.pack(side="top", fill="x", expand=True)
         sensor_title = Tkinter.Label(left_temp, text="Sensor Info")
         sensor_title.pack(side="top")
-        temp_name = Tkinter.Label(left_temp, text="Temperature: ")
+        temp_name = Tkinter.Label(left_temp, text="Board Temperature: ")
         temp_name.pack(padx=5, pady=5, side="left")
 
         self.temp = Tkinter.Label(left_temp, text="0")
         self.temp.pack(padx=0, pady=5, side="left")
+
+        thermistor_frame = Tkinter.Frame(self.main_frame)
+        thermistor_frame.pack(side="top", fill="x", expand=True)
+        thermistor_title = Tkinter.Label(thermistor_frame, text="Thermistors")
+        thermistor_title.pack(side="top")
+
+        thermistor_left_frame = Tkinter.Frame(thermistor_frame)
+        thermistor_left_frame.pack(side="left", fill="x", expand=True)
+
+        t1_frame = Tkinter.Frame(thermistor_left_frame)
+        t1_frame.pack(side="top", fill="x", expand=True)
+        t1 = Tkinter.Label(t1_frame, text="t1: ")
+        t1.pack(padx=5, pady=10, side="left")
+        self.temp1 = Tkinter.Label(t1_frame, text="0")
+        self.temp1.pack(padx=0, pady=5, side="left")
+
+        t2_frame = Tkinter.Frame(thermistor_left_frame)
+        t2_frame.pack(side="top", fill="x", expand=True)
+        t2 = Tkinter.Label(t2_frame, text="t2: ")
+        t2.pack(padx=5, pady=10, side="left")
+        self.temp2 = Tkinter.Label(t2_frame, text="0")
+        self.temp2.pack(padx=0, pady=5, side="left")
+
+        t3_frame = Tkinter.Frame(thermistor_left_frame)
+        t3_frame.pack(side="top", fill="x", expand=True)
+        t3 = Tkinter.Label(t3_frame, text="t3: ")
+        t3.pack(padx=5, pady=10, side="left")
+        self.temp3 = Tkinter.Label(t3_frame, text="0")
+        self.temp3.pack(padx=0, pady=5, side="left")
+
+        t4_frame = Tkinter.Frame(thermistor_left_frame)
+        t4_frame.pack(side="top", fill="x", expand=True)
+        t4 = Tkinter.Label(t4_frame, text="t4: ")
+        t4.pack(padx=5, pady=10, side="left")
+        self.temp4 = Tkinter.Label(t4_frame, text="0")
+        self.temp4.pack(padx=0, pady=5, side="left")
+
+        thermistor_right_frame = Tkinter.Frame(thermistor_frame)
+        thermistor_right_frame.pack(side="left", fill="x", expand=True)
+
+        t5_frame = Tkinter.Frame(thermistor_right_frame)
+        t5_frame.pack(side="top", fill="x", expand=True)
+        t5 = Tkinter.Label(t5_frame, text="t5: ")
+        t5.pack(padx=5, pady=10, side="left")
+        self.temp5 = Tkinter.Label(t5_frame, text="0")
+        self.temp5.pack(padx=0, pady=5, side="left")
+
+        t6_frame = Tkinter.Frame(thermistor_right_frame)
+        t6_frame.pack(side="top", fill="x", expand=True)
+        t6 = Tkinter.Label(t6_frame, text="t6: ")
+        t6.pack(padx=5, pady=10, side="left")
+        self.temp6 = Tkinter.Label(t6_frame, text="0")
+        self.temp6.pack(padx=0, pady=5, side="left")
+
+        t7_frame = Tkinter.Frame(thermistor_right_frame)
+        t7_frame.pack(side="top", fill="x", expand=True)
+        t7 = Tkinter.Label(t7_frame, text="t7: ")
+        t7.pack(padx=5, pady=10, side="left")
+        self.temp7 = Tkinter.Label(t7_frame, text="0")
+        self.temp7.pack(padx=0, pady=5, side="left")
+
+        t8_frame = Tkinter.Frame(thermistor_right_frame)
+        t8_frame.pack(side="top", fill="x", expand=True)
+        t8 = Tkinter.Label(t8_frame, text="t8: ")
+        t8.pack(padx=5, pady=10, side="left")
+        self.temp8 = Tkinter.Label(t8_frame, text="0")
+        self.temp8.pack(padx=0, pady=5, side="left")
 
         # pressure data
         left_pressure = Tkinter.Frame(self.main_frame)
@@ -188,19 +264,19 @@ class GuiPart:
 
     def processHeartbeat(self, msg):
         if msg['heater1']:
-            self.heater12.config(bg="green")
+            self.heater1.config(bg="green")
         else:
-            self.heater12.config(bg=self.defaultbg)
+            self.heater1.config(bg=self.defaultbg)
 
         if msg['heater2']:
-            self.heater34.config(bg="green")
+            self.heater2.config(bg="green")
         else:
-            self.heater34.config(bg=self.defaultbg)
+            self.heater2.config(bg=self.defaultbg)
 
         if msg['heater3']:
-            self.heater56.config(bg="green")
+            self.heater3.config(bg="green")
         else:
-            self.heater56.config(bg=self.defaultbg)
+            self.heater3.config(bg=self.defaultbg)
 
         if msg['state'] == "Ascent":
             self.state_ascent.config(bg="green")
@@ -244,7 +320,14 @@ class GuiPart:
 
     def processTemperature(self, msg):
         self.temp.config(text='{:04.2f} C'.format(msg['board_temperature']))
-        # TODO: add all of the other temps
+        self.temp1.config(text='{:04.3f} C'.format(msg['temperature_array'][0]))
+        self.temp2.config(text='{:04.3f} C'.format(msg['temperature_array'][1]))
+        self.temp3.config(text='{:04.3f} C'.format(msg['temperature_array'][2]))
+        self.temp4.config(text='{:04.3f} C'.format(msg['temperature_array'][3]))
+        self.temp5.config(text='{:04.3f} C'.format(msg['temperature_array'][4]))
+        self.temp6.config(text='{:04.3f} C'.format(msg['temperature_array'][5]))
+        self.temp7.config(text='{:04.3f} C'.format(msg['temperature_array'][6]))
+        self.temp8.config(text='{:04.3f} C'.format(msg['temperature_array'][7]))
 
     def processAck(self, msg):
         # mark the command as having been successfully received (no longer need to
@@ -262,22 +345,22 @@ class GuiPart:
                 msg = self.queue.get(0)
 
                 if msg['type'] == MSG_TYPE_HEARTBEAT:  # heartbeat message
-                    processHeartbeat(msg)
+                    self.processHeartbeat(msg)
 
                 elif msg['type'] == MSG_TYPE_RADIO:  # radio status
-                    processRadio(msg)
+                    self.processRadio(msg)
 
                 elif msg['type'] == MSG_TYPE_PRESSURE:  # temp pressure sensor
-                    processPressure(msg)
+                    self.processPressure(msg)
 
                 elif msg['type'] == MSG_TYPE_GPS:  # gps altitude
-                    processGP(msg)
+                    self.processGPS(msg)
 
                 elif msg['type'] == MSG_TYPE_TEMPERATURE:
-                    processTemperature(msg)
+                    self.processTemperature(msg)
 
                 elif msg['type'] == MSG_TYPE_COMMAND_ACK:
-                    processAck(msg)
+                    self.processAck(msg)
 
             except Queue.Empty:
                 pass
@@ -432,6 +515,9 @@ class ThreadedClient:
         heater1on = False
         heater2on = False
         heater3on = False
+        heater4on = False
+        heater5on = False
+        heater6on = False
         nichromeon = False
 
         customMode = hrt.custom_mode
@@ -443,6 +529,15 @@ class ThreadedClient:
 
         if customMode & 4 > 0:
             heater3on = True
+
+        if customMode & 8 > 0:
+            heater4on = True
+
+        if customMode & 16 > 0:
+            heater5on = True
+
+        if customMode & 32 > 0:
+            heater6on = True
 
         if customMode & 65536 > 0:
             nichromeon = True
@@ -465,6 +560,9 @@ class ThreadedClient:
         returnMsg['heater1'] = heater1on
         returnMsg['heater2'] = heater2on
         returnMsg['heater3'] = heater3on
+        returnMsg['heater4'] = heater4on
+        returnMsg['heater5'] = heater5on
+        returnMsg['heater6'] = heater6on
         returnMsg['state'] = state
         return returnMsg
 
@@ -508,20 +606,20 @@ class ThreadedClient:
 
         # get the radio status
         if msg.get_type() == "RADIO_STATUS":
-            returnMsg = parseRadioMsg(msg)
+            returnMsg = self.parseRadioStatus(msg)
 
         # get the heartbeat (doing this to be able to send a heartbeat)
         elif msg.get_type() == "HEARTBEAT":
-            returnMsg = parseHeartbeat(msg)
+            returnMsg = self.parseHeartbeat(msg)
 
         elif msg.get_type() == "TEMP_SENSORS":
-            returnMsg = parseTemperature(msg)
+            returnMsg = self.parseTemperature(msg)
 
         elif msg.get_type() == "PRESSURE_SENSOR":
-            returnMsg = parsePressure(msg)
+            returnMsg = self.parsePressure(msg)
 
         elif msg.get_type() == "COMMAND_ACK":
-            returnMsg = parseAck(msg)
+            returnMsg = self.parseAck(msg)
 
         return returnMsg
 
