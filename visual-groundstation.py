@@ -278,6 +278,21 @@ class GuiPart:
         else:
             self.heater3.config(bg=self.defaultbg)
 
+        if msg['heater4']:
+            self.heater4.config(bg="green")
+        else:
+            self.heater4.config(bg=self.defaultbg)
+
+        if msg['heater5']:
+            self.heater5.config(bg="green")
+        else:
+            self.heater5.config(bg=self.defaultbg)
+
+        if msg['heater6']:
+            self.heater6.config(bg="green")
+        else:
+            self.heater6.config(bg=self.defaultbg)
+
         if msg['state'] == "Ascent":
             self.state_ascent.config(bg="green")
             self.state_burst.config(bg=self.defaultbg)
@@ -587,7 +602,7 @@ class ThreadedClient:
               (missionTime, baroAlt, pressure))
 
         returnMsg['type'] = MSG_TYPE_PRESSURE
-        returnMsg['mission_time'] = missionTime / 1000 / 60  # convert milliseconds to minutes
+        returnMsg['mission_time'] = float(missionTime) / 60  # convert milliseconds to minutes
         returnMsg['baro_altitude'] = baroAlt
         returnMsg['pressure'] = pressure
         return returnMsg
